@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>✨ Corrector de Ortografía y Puntuación</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍️</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  ::selection { background: #fed7aa; }
+
+  body {
+    font-family: "Quicksand", "Segoe UI", system-ui, sans-serif;
+    min-height: 100vh;
+    color: #3b3b4f;
+    background: linear-gradient(120deg, #ffe8d6, #f3e8ff, #dbeafe, #ffe8d6);
+    background-size: 300% 300%;
+    animation: fondoOndulante 18s ease infinite;
+    padding: 24px 16px;
+    overflow-x: hidden;
+  }
+
+  @keyframes fondoOndulante {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ─── Burbujas de color flotando en el fondo ─── */
+  .burbuja {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .burbuja-1 { width: 380px; height: 380px; background: #fb923c; top: -120px; left: -100px; animation: flotar1 14s ease-in-out infinite; }
+  .burbuja-2 { width: 320px; height: 320px; background: #c084fc; bottom: -100px; right: -80px; animation: flotar2 17s ease-in-out infinite; }
+  .burbuja-3 { width: 260px; height: 260px; background: #5eead4; top: 40%; left: 62%; animation: flotar3 20s ease-in-out infinite; }
+
+  @keyframes flotar1 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(60px, 40px); } }
+  @keyframes flotar2 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-50px, -30px); } }
+  @keyframes flotar3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-40px, 50px); } }
+
+  /* ─── Brillitos ✨ que titilan en la pantalla ─── */
+  #brillitos { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  .brillito {
+    position: absolute;
+    opacity: 0;
+    filter: drop-shadow(0 0 6px rgba(255, 200, 100, 0.9));
+    animation: titilar var(--duracion, 3s) ease-in-out infinite;
+    animation-delay: var(--retraso, 0s);
+  }
+
+  @keyframes titilar {
+    0%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+    50% { opacity: 0.95; transform: scale(1) rotate(25deg); }
+  }
+
+  .twinkle { display: inline-block; animation: titilar 2.4s ease-in-out infinite; }
+  .twinkle.t2 { animation-delay: 1.1s; }
+
+  /* ─── Tarjeta principal con efecto cristal ─── */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 880px;
+    margin: 0 auto;
+    height: calc(100vh - 48px);
+    min-height: 580px;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 26px;
+    box-shadow: 0 30px 70px rgba(124, 58, 237, 0.18), 0 8px 24px rgba(249, 115, 22, 0.12);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: aparecer 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  }
+
+  @keyframes aparecer {
+    from { opacity: 0; transform: translateY(24px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* ─── Cabecera ─── */
+  header {
+    background: linear-gradient(120deg, #f55036, #f97316, #ec4899, #f55036);
+    background-size: 300% 300%;
+    animation: fondoOndulante 10s ease infinite;
+    color: #fff;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  header h1 { font-size: 1.28rem; font-weight: 700; letter-spacing: 0.2px; }
+  header p { font-size: 0.85rem; opacity: 0.95; margin-top: 3px; font-weight: 500; }
+
+  .header-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn-header {
+    font-family: inherit;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: #fff;
+    padding: 9px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    backdrop-filter: blur(6px);
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .btn-header:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  }
+  .btn-header:active { transform: translateY(0) scale(0.96); }
+
+  /* ─── Panel de API Key ─── */
+  .key-panel {
+    background: linear-gradient(120deg, #fff8ee, #fef3f7);
+    border-bottom: 1px solid rgba(253, 186, 116, 0.5);
+    padding: 16px 24px;
+    display: none;
+  }
+  .key-panel.open { display: block; animation: desplegar 0.35s ease; }
+  .key-panel.tiembla { animation: sacudir 0.5s ease; }
+
+  @keyframes desplegar { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  @keyframes sacudir {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  .key-panel label { font-weight: 700; font-size: 0.9rem; color: #92400e; }
+
+  .key-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+  .key-row input {
+    flex: 1;
+    min-width: 220px;
+    padding: 11px 14px;
+    border: 2px solid #fdba74;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    background: rgba(255, 255, 255, 0.9);
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .key-row input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.18);
+    transform: translateY(-1px);
+  }
+
+  .btn {
+    font-family: inherit;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: transform 0.15s, box-shadow 0.2s, filter 0.2s, background 0.2s;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn-primary {
+    background: linear-gradient(120deg, #f55036, #f97316);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(245, 80, 54, 0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(245, 80, 54, 0.45); }
+  .btn-secondary { background: #fff; color: #6b7280; border: 2px solid #e5e7eb; }
+  .btn-secondary:hover { background: #f3f4f6; transform: translateY(-2px); }
+
+  .key-meta {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #6b7280;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .key-meta label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; color: #6b7280; }
+  .key-status { font-weight: 700; }
+
+  .key-help { margin-top: 6px; font-size: 0.78rem; color: #92400e; }
+  .key-help a { color: #c2410c; font-weight: 700; }
+
+  /* ─── Chat ─── */
+  .chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    scroll-behavior: smooth;
+  }
+
+  .chat::-webkit-scrollbar, .input-row textarea::-webkit-scrollbar { width: 8px; }
+  .chat::-webkit-scrollbar-track, .input-row textarea::-webkit-scrollbar-track { background: transparent; }
+  .chat::-webkit-scrollbar-thumb, .input-row textarea::-webkit-scrollbar-thumb {
+    background: linear-gradient(#fdba74, #f97316);
+    border-radius: 99px;
+  }
+
+  .msg { display: flex; gap: 10px; max-width: 85%; }
+  .msg-user { align-self: flex-end; flex-direction: row-reverse; animation: entrarDerecha 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3); }
+  .msg-bot { align-self: flex-start; animation: entrarIzquierda 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3); }
+
+  @keyframes entrarIzquierda { from { opacity: 0; transform: translateX(-26px) scale(0.96); } to { opacity: 1; transform: none; } }
+  @keyframes entrarDerecha { from { opacity: 0; transform: translateX(26px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+  .avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+  .msg-user .avatar { background: linear-gradient(135deg, #fde68a, #fbbf24); }
+  .msg-bot .avatar { background: linear-gradient(135deg, #fecdd3, #fda4af); }
+
+  .msg-body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .msg-user .msg-body { align-items: flex-end; }
+  .msg-bot .msg-body { align-items: flex-start; }
+
+  .msg-author {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #9ca3af;
+    margin: 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .bubble {
+    padding: 13px 17px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .msg-user .bubble {
+    background: linear-gradient(135deg, #f55036, #f97316);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 6px 18px rgba(245, 80, 54, 0.3);
+  }
+  .msg-bot .bubble {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #fde8d7;
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  }
+  .msg-bot .bubble:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.12); }
+  .msg-bot .bubble.error { border-color: #fecaca; background: linear-gradient(135deg, #fef2f2, #fff); color: #b91c1c; }
+  .msg-bot .bubble.brillante { animation: brilloLlegada 1.1s ease; }
+
+  @keyframes brilloLlegada {
+    0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.55); }
+    100% { box-shadow: 0 0 0 26px rgba(249, 115, 22, 0); }
+  }
+
+  /* ─── Indicador de escritura ─── */
+  .typing { display: inline-flex; align-items: center; gap: 5px; padding: 14px 18px; }
+  .typing-texto { font-size: 0.82rem; color: #b45309; font-weight: 700; margin-right: 8px; }
+  .punto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f55036, #f97316);
+    animation: botar 1.2s infinite;
+  }
+
+  @keyframes botar {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-7px); opacity: 1; }
+  }
+
+  /* ─── Área de escritura ─── */
+  .input-area {
+    border-top: 1px solid rgba(253, 186, 116, 0.35);
+    padding: 16px 24px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .input-row { display: flex; gap: 12px; align-items: stretch; }
+
+  .input-row textarea {
+    flex: 1;
+    resize: none;
+    border: 2px solid #fcd9b8;
+    border-radius: 16px;
+    padding: 12px 14px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    outline: none;
+    min-height: 68px;
+    max-height: 180px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.9);
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .input-row textarea:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.18);
+    transform: translateY(-1px);
+  }
+
+  #btnSend {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(120deg, #f55036, #f97316, #ec4899);
+    background-size: 200% 200%;
+    animation: fondoOndulante 6s ease infinite;
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 14px 26px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 10px 24px rgba(245, 80, 54, 0.4);
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  #btnSend:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); box-shadow: 0 14px 30px rgba(245, 80, 54, 0.5); }
+  #btnSend:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+  #btnSend::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -80%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    transform: skewX(-20deg);
+    animation: destello 3.2s ease infinite;
+  }
+  @keyframes destello { 0%, 55% { left: -80%; } 100% { left: 160%; } }
+  #btnSend:disabled { filter: saturate(0.3) opacity(0.7); cursor: not-allowed; box-shadow: none; animation: none; }
+
+  .word-bar { height: 5px; border-radius: 99px; background: rgba(0, 0, 0, 0.06); margin-top: 10px; overflow: hidden; }
+  .word-bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #34d399, #fbbf24);
+    transition: width 0.3s ease, background 0.3s;
+  }
+  .word-bar-fill.warn { background: linear-gradient(90deg, #fbbf24, #f97316); }
+  .word-bar-fill.full { background: linear-gradient(90deg, #f97316, #ef4444); }
+
+  .input-hint {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* ─── Notificación flotante ─── */
+  .toast {
+    position: fixed;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(30, 30, 40, 0.92);
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 50;
+  }
+  .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 640px) {
+    body { padding: 12px 8px; }
+    .app { height: calc(100vh - 24px); border-radius: 20px; }
+    .msg { max-width: 94%; }
+    .avatar { width: 32px; height: 32px; font-size: 16px; }
+    .input-row { flex-direction: column; align-items: stretch; }
+    #btnSend { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="burbuja burbuja-1"></div>
+  <div class="burbuja burbuja-2"></div>
+  <div class="burbuja burbuja-3"></div>
+  <div id="brillitos"></div>
+  <div class="toast" id="toast"></div>
+
+  <div class="app">
+    <header>
+      <div>
+        <h1>✍️ Corrector de Ortografía y Puntuación <span class="twinkle">✨</span></h1>
+        <p>✨ Revisa tus textos con la IA de Groq <span class="twinkle t2">💫</span></p>
+      </div>
+      <div class="header-buttons">
+        <button class="btn-header" id="btnToggleKey">🔑 API Key</button>
+        <button class="btn-header" id="btnClear">🧹 Limpiar chat</button>
+      </div>
+    </header>
+
+    <section class="key-panel" id="keyPanel">
+      <label for="apiKey">🔑 Tu API Key de Groq</label>
+      <div class="key-row">
+        <input type="password" id="apiKey" placeholder="Ejemplo: gsk_xxxxxxxxxxxxxxxx" autocomplete="off" />
+        <button class="btn btn-primary" id="btnSaveKey">💾 Guardar</button>
+        <button class="btn btn-secondary" id="btnDeleteKey">🗑️ Borrar</button>
+      </div>
+      <div class="key-meta">
+        <label><input type="checkbox" id="showKey" /> 👁️ Mostrar la clave</label>
+        <span class="key-status" id="keyStatus"></span>
+      </div>
+      <p class="key-help">
+        Puedes conseguir tu API Key gratis en
+        <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> 🎁
+        La clave se guarda únicamente en tu navegador y solo se usa para hablar con la API de Groq.
+      </p>
+    </section>
+
+    <div class="chat" id="chat"></div>
+
+    <div class="input-area">
+      <div class="input-row">
+        <textarea id="userInput" rows="3" placeholder="✍️ Pega aquí el texto que quieres corregir..."></textarea>
+        <button id="btnSend">✨ Corregir</button>
+      </div>
+      <div class="word-bar"><div class="word-bar-fill" id="wordBar"></div></div>
+      <div class="input-hint">
+        <span>⏎ Enter para corregir · ⇧ Shift+Enter para salto de línea</span>
+        <span id="wordCount">📝 0 palabras</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ─── Configuración ────────────────────────────────────────────────
+  const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+  const MODEL = "qwen/qwen3.8-27b";  // Modelo indicado
+  const MAX_TOKENS = 600;            // Espacio para el texto corregido (hasta 210 palabras) más la lista de cambios
+  const TEMPERATURE = 0.5;           // Respuestas más estables y coherentes
+
+  const SYSTEM_PROMPT = [
+    "Eres un corrector profesional de ortografía y signos de puntuación en español.",
+    "El usuario envía un texto y tu única función es devolver ese mismo texto corregido.",
+    "",
+    "Reglas estrictas:",
+    "1. Corriges únicamente ortografía, tildes, signos de puntuación, mayúsculas y espacios. Nada más.",
+    "2. Prohibido añadir, ampliar, resumir, reescribir, parafrasear o mejorar el estilo: el texto corregido debe contener exactamente las mismas palabras e ideas que el original, con prácticamente la misma extensión y los mismos párrafos en el mismo orden.",
+    "3. Respuesta completa: devuelve el texto corregido de forma íntegra, de principio a fin, hasta un máximo de 210 palabras. Nunca lo cortes ni lo dejes incompleto.",
+    "4. Prosa en párrafos: el texto corregido mantiene la prosa continua del original. No uses listas ni viñetas dentro del texto corregido.",
+    "5. Cierre obligatorio: termina cada idea con su final natural y garantiza una idea completa, sin frases abiertas ni ideas inconclusas.",
+    "6. Después del texto corregido, deja una línea en blanco, escribe «Cambios:» y debajo una viñeta por cada corrección realizada, con el formato «original → corrección». Ejemplos: «• arta → harta», «• estoy → Estoy (mayúscula inicial)», «• + punto final». Si añadiste o quitaste un signo de puntuación, indícalo con «+» o «−» seguido del signo. Cada viñeta debe ser corta, de una sola línea, sin explicaciones largas.",
+    "7. Sin saludos ni comentarios fuera del texto corregido y su lista de cambios. Si el texto no tiene errores, devuélvelo exactamente igual y escribe debajo: «Cambios: • Ninguno, el texto ya está correcto.»"
+  ].join("\n");
+
+  // ─── Elementos ────────────────────────────────────────────────────
+  const keyPanel = document.getElementById("keyPanel");
+  const apiKeyInput = document.getElementById("apiKey");
+  const showKeyCheckbox = document.getElementById("showKey");
+  const keyStatus = document.getElementById("keyStatus");
+  const chatEl = document.getElementById("chat");
+  const userInput = document.getElementById("userInput");
+  const btnSend = document.getElementById("btnSend");
+  const wordCount = document.getElementById("wordCount");
+  const wordBar = document.getElementById("wordBar");
+  const KEY_STORAGE = "groq_api_key";
+
+  let messages = [{ role: "system", content: SYSTEM_PROMPT }];
+  let waiting = false;
+  let toastTimer;
+
+  // ─── Utilidades ───────────────────────────────────────────────────
+  function getKey() { return localStorage.getItem(KEY_STORAGE) || ""; }
+
+  function updateKeyStatus() {
+    if (getKey()) {
+      keyStatus.textContent = "✅ Clave guardada en este navegador.";
+      keyStatus.style.color = "#15803d";
+    } else {
+      keyStatus.textContent = "🚫 Sin clave guardada.";
+      keyStatus.style.color = "#b91c1c";
+    }
+  }
+
+  function mostrarToast(texto) {
+    const toast = document.getElementById("toast");
+    toast.textContent = texto;
+    toast.classList.add("visible");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("visible"), 2600);
+  }
+
+  function crearBrillitos() {
+    const emojis = ["✨", "⭐", "💫", "🌟", "✨"];
+    const capa = document.getElementById("brillitos");
+    for (let i = 0; i < 18; i++) {
+      const s = document.createElement("span");
+      s.className = "brillito";
+      s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      s.style.left = Math.random() * 100 + "vw";
+      s.style.top = Math.random() * 100 + "vh";
+      s.style.fontSize = (12 + Math.random() * 16) + "px";
+      s.style.setProperty("--duracion", (2.5 + Math.random() * 3) + "s");
+      s.style.setProperty("--retraso", (Math.random() * 4) + "s");
+      capa.appendChild(s);
+    }
+  }
+
+  function addMessage(role, text, isError) {
+    const wrap = document.createElement("div");
+    wrap.className = role === "user" ? "msg msg-user" : "msg msg-bot";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = role === "user" ? "🙋" : "✍️";
+    wrap.appendChild(avatar);
+
+    const body = document.createElement("div");
+    body.className = "msg-body";
+
+    const author = document.createElement("span");
+    author.className = "msg-author";
+    author.textContent = role === "user" ? "Tú" : "Corrector";
+    body.appendChild(author);
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble" + (isError ? " error" : "");
+    bubble.textContent = text;
+    body.appendChild(bubble);
+
+    wrap.appendChild(body);
+    chatEl.appendChild(wrap);
+    chatEl.scrollTo({ top: chatEl.scrollHeight, behavior: "smooth" });
+    return wrap;
+  }
+
+  function showTyping() {
+    const wrap = document.createElement("div");
+    wrap.className = "msg msg-bot";
+    wrap.id = "typing";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = "✍️";
+    wrap.appendChild(avatar);
+
+    const body = document.createElement("div");
+    body.className = "msg-body";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble typing";
+    const texto = document.createElement("span");
+    texto.className = "typing-texto";
+    texto.textContent = "✨ Corrigiendo tu texto";
+    bubble.appendChild(texto);
+    for (let i = 0; i < 3; i++) {
+      const punto = document.createElement("span");
+      punto.className = "punto";
+      punto.style.animationDelay = (i * 0.18) + "s";
+      bubble.appendChild(punto);
+    }
+    body.appendChild(bubble);
+    wrap.appendChild(body);
+    chatEl.appendChild(wrap);
+    chatEl.scrollTo({ top: chatEl.scrollHeight, behavior: "smooth" });
+  }
+
+  function hideTyping() {
+    const t = document.getElementById("typing");
+    if (t) t.remove();
+  }
+
+  function updateWordCount() {
+    const words = userInput.value.trim().split(/\s+/).filter(Boolean).length;
+    wordBar.style.width = Math.min(100, (words / 210) * 100) + "%";
+    wordBar.className = "word-bar-fill" + (words > 210 ? " full" : words > 140 ? " warn" : "");
+    wordCount.style.color = "";
+    if (words === 0) {
+      wordCount.textContent = "📝 0 palabras";
+    } else if (words > 210) {
+      wordCount.textContent = "📝 " + words + " palabras — divídelo en partes ✂️";
+      wordCount.style.color = "#c2410c";
+    } else {
+      wordCount.textContent = "📝 " + words + (words === 1 ? " palabra" : " palabras");
+    }
+  }
+
+  function iniciarChat() {
+    addMessage("assistant",
+      "¡Hola! 👋 Pega en el cuadro inferior el texto que quieras corregir y lo devolveré con la ortografía, " +
+      "las tildes y los signos de puntuación corregidos, seguido de una lista breve con los cambios realizados. ✨\n\n" +
+      "Antes de empezar, guarda tu API Key de Groq en «🔑 API Key» (arriba a la derecha). " +
+      "Para mejores resultados, envía textos de hasta 210 palabras; si son más largos, divídelos en partes. 📝");
+  }
+
+  // ─── Envío a la API de Groq ───────────────────────────────────────
+  async function corregir() {
+    const text = userInput.value.trim();
+    if (!text || waiting) return;
+
+    if (!getKey()) {
+      keyPanel.classList.remove("tiembla");
+      void keyPanel.offsetWidth; // reinicia la animación de sacudida
+      keyPanel.classList.add("open", "tiembla");
+      setTimeout(() => keyPanel.classList.remove("tiembla"), 600);
+      apiKeyInput.focus();
+      mostrarToast("🔑 Guarda tu API Key primero");
+      addMessage("assistant", "Primero guarda tu API Key de Groq en Configuración para poder corregir textos.", true);
+      return;
+    }
+
+    waiting = true;
+    btnSend.disabled = true;
+    btnSend.textContent = "⏳ Corrigiendo...";
+    userInput.value = "";
+    updateWordCount();
+
+    const userMsg = addMessage("user", text);
+    messages.push({ role: "user", content: text });
+    showTyping();
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + getKey()
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          temperature: TEMPERATURE,
+          max_tokens: MAX_TOKENS,
+          messages: messages
+        })
+      });
+
+      if (!response.ok) {
+        let detalle = "Error " + response.status;
+        if (response.status === 401 || response.status === 403) {
+          detalle = "La API Key no es válida o no tiene permiso. Bórrala y vuelve a guardarla en Configuración. 🔑";
+        } else if (response.status === 429) {
+          detalle = "Has enviado demasiadas solicitudes seguidas. Espera unos segundos e inténtalo de nuevo. ⏳";
+        } else {
+          try {
+            const err = await response.json();
+            if (err.error && err.error.message) detalle = err.error.message;
+          } catch (e) {}
+        }
+        throw new Error(detalle);
+      }
+
+      const data = await response.json();
+      let reply = ((data.choices || [])[0] || {}).message || {};
+      reply = (reply.content || "").trim();
+      // Por si el modelo devuelve razonamiento interno, se elimina.
+      reply = reply.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+      if (!reply) reply = "La respuesta llegó vacía. Inténtalo de nuevo. 🤔";
+
+      messages.push({ role: "assistant", content: reply });
+      const wrapReply = addMessage("assistant", reply);
+      wrapReply.querySelector(".bubble").classList.add("brillante");
+    } catch (error) {
+      // Se descarta el intento fallido: el texto vuelve al cuadro para reintentarlo.
+      userMsg.remove();
+      messages.pop();
+      userInput.value = text;
+      updateWordCount();
+      const mensaje = (error instanceof TypeError)
+        ? "Error de conexión. Revisa tu internet e inténtalo de nuevo. 📡"
+        : error.message;
+      addMessage("assistant", "Error: " + mensaje, true);
+    } finally {
+      hideTyping();
+      waiting = false;
+      btnSend.disabled = false;
+      btnSend.textContent = "✨ Corregir";
+      userInput.focus();
+    }
+  }
+
+  // ─── Eventos ──────────────────────────────────────────────────────
+  document.getElementById("btnToggleKey").addEventListener("click", () => {
+    keyPanel.classList.toggle("open");
+    if (keyPanel.classList.contains("open")) apiKeyInput.focus();
+  });
+
+  document.getElementById("btnSaveKey").addEventListener("click", () => {
+    const key = apiKeyInput.value.trim();
+    if (!key) {
+      mostrarToast("✍️ Escribe tu API Key antes de guardar");
+      apiKeyInput.focus();
+      return;
+    }
+    localStorage.setItem(KEY_STORAGE, key);
+    updateKeyStatus();
+    keyPanel.classList.remove("open");
+    mostrarToast("¡API Key guardada! 🎉");
+    userInput.focus();
+  });
+
+  document.getElementById("btnDeleteKey").addEventListener("click", () => {
+    localStorage.removeItem(KEY_STORAGE);
+    apiKeyInput.value = "";
+    updateKeyStatus();
+    mostrarToast("API Key borrada 🗑️");
+  });
+
+  showKeyCheckbox.addEventListener("change", () => {
+    apiKeyInput.type = showKeyCheckbox.checked ? "text" : "password";
+  });
+
+  document.getElementById("btnClear").addEventListener("click", () => {
+    messages = [{ role: "system", content: SYSTEM_PROMPT }];
+    chatEl.innerHTML = "";
+    iniciarChat();
+    mostrarToast("Chat limpio ✨");
+  });
+
+  btnSend.addEventListener("click", corregir);
+
+  userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      corregir();
+    }
+  });
+
+  userInput.addEventListener("input", updateWordCount);
+
+  // ─── Inicio ───────────────────────────────────────────────────────
+  crearBrillitos();
+  apiKeyInput.value = getKey();
+  if (!getKey()) keyPanel.classList.add("open");
+  updateKeyStatus();
+  iniciarChat();
+  updateWordCount();
+  userInput.focus();
+</script>
+</body>
+</html>
